@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Geodesignhub Design Kaledioscope</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Aesthetics! -->
+    <link rel="stylesheet" type="text/css" href="assets/css/flatty.css" />
+
+    <link type="text/css" rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/base.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/leaflet.css" />
+    <link rel="stylesheet" type="text/css" href="assets/css/ion.rangeSlider.min.css" />
+
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-sm-3 col-md-5 main">
+
+                <h1 class="page-header">Design Kaledioscope</h1>
+                <p class="description">A <a href="http://www.geodesignhub.com/api/" target="_blank">Geodesignhub API</a>
+                    plugin that helps you change transperencies of your design synthesis. This is useful to visualize
+                    complex designs with many projects and policies.</p>
+
+                <hr>
+
+                <p>Your design is loaded on the map to the right, use the sliders to control your preferences are below.
+                    Change preference to adjust transperency.</p>
+                <table style="width:100%" id="systable" class="table table-hover table-condensed table-bordered">
+                    <thead>
+                        <tr>
+                            <td>
+                                <p>&nbsp;</p>
+                            </td>
+                            <td>System Name</td>
+                            <td>Transperency</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <div id="map" class="col-sm-9 col-md-7 sidebar">
+
+            </div>
+
+        </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/humane.min.js"></script>
+    <script src="assets/js/leaflet.js"></script>
+    <script type="text/javascript" src="/assets/js/svg/svg.min.js"></script>
+    <script src="assets/js/ion.rangeSlider.min.js"></script>
+    <script type="text/javascript">
+        let template_data = <%- JSON.stringify(data) %>;
+
+        function getColor(type) {
+            return type === 'red2' ? '#bd0026' :
+                type === 'red' ? '#f03b20' :
+                type === 'yellow' ? '#FFFF00' :
+                type === 'green' ? '#74c476' :
+                type === 'green2' ? '#31a354' :
+                type === 'green3' ? '#006d2c' :
+                '#808080';
+        }
+        var mymap = L.map('map', {
+
+        });
+        var synthesis_layers = [];
+        var lGroup = L.layerGroup().addTo(mymap);
+        L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>'
+        }).addTo(mymap);
+        let bounds = template_data[2]['bounds'];
+        let systems = template_data[0];
+        let systems_length = systems.length;
+        var latLngs = bounds.split(',');
+        var southWest = L.latLng(latLngs[1], latLngs[0]);
+        var northEast = L.latLng(latLngs[3], latLngs[2]);
+        var mb = L.latLngBounds(southWest, northEast);
+        mymap.fitBounds(mb);
+
+
+
+
+        function clearAllMapLayers() {
+            lGroup.clearLayers();
+            synthesis_layers = [];
+            $("#systable > tbody").html("");
+        }
+
+        function miniMapstyleComp(feature) {
+            // console.log(feature.properties)
+            var curFeature = feature.geometry.type;
+            if (curFeature === 'LineString') {
+                // console.log(feature)
+                return {
+                    weight: 2,
+                    opacity: .9,
+                    color: feature.properties.color,
+                    dashArray: '',
+
+                };
+            } else {
+                // var fillColor = getColor(feature.properties.areatype);
+
+                if (feature.properties.areatype == 'project') {
+                    var fillColor = feature.properties.color;
+                } else { // it is policy
+                    var fillPattern = setSVGStyle(feature.properties.color);
+
+                    var fillColor = fillPattern;
+                }
+
+                return {
+                    // fillColor: feature.properties.color,
+                    // fillColor:'#333333',
+                    weight: 1,
+                    stroke: true,
+                    opacity: 0.9,
+                    fillColor: fillColor,
+                    color: feature.properties.color,
+                    dashArray: '',
+                    // opacity: 0.2,
+                    fillOpacity: 0.8,
+                };
+            }
+
+        }
+
+        var svgDrawing = SVG().addTo('body').size(10, 10);
+
+        function setSVGStyle(reqColor) {
+            var pattern = svgDrawing.pattern(6, 6, function (add) {
+                // add.rect(5, 5).fill(reqColor)
+                add.line(0, 0, 6, 6).stroke({
+                    width: 1,
+                    color: reqColor
+                })
+                add.line(6, 0, 0, 6).stroke({
+                    width: 1,
+                    color: reqColor
+                })
+            });
+            return pattern;
+        }
+
+        function getColor(type) {
+
+            return type === 'policy' ? '#707070 ' :
+                type === 'project' ? '#a69695 ' :
+                type === 'red2' ? '#bd0026' :
+                type === 'red' ? '#f03b20' :
+                type === 'yellow' ? '#FFFF00' :
+                type === 'green' ? '#74c476' :
+                type === 'green2' ? '#31a354' :
+                type === 'green3' ? '#006d2c' :
+                type === 'purple' ? '#CFACF7' :
+                type === 'purple2' ? '#8D6CBF' :
+                type === 'purple3' ? '#601286' :
+                type === 'orange' ? '#FFA927' :
+                type === 'orange2' ? '#F8872E' :
+                type === 'orange3' ? '#FC6B0A' :
+                type === 'constraints' ? '#343434' :
+                type === 'boundaries' ? '#a6cee3' :
+                type === 'boundaries2' ? '#b2df8a' :
+                '#808080';
+        }
+
+
+        var design_synthesis = template_data[1];
+        var syn_feature_len = design_synthesis.features.length;
+        
+        for (var x1 = 0; x1 < syn_feature_len; x1++) {
+            var current_feature = design_synthesis.features[x1];
+            let sys_name = current_feature.properties.sysname;
+            let sys_id = 0
+            for (let index = 0; index < systems_length; index++) {
+                const cur_system = systems[index];
+                if (sys_name == cur_system.sysname){
+                    sys_id = cur_system.id;
+                    break;
+                }
+                
+            }
+
+            let l = L.geoJson(current_feature, {
+                style: miniMapstyleComp
+            });
+            var lid = L.stamp(l);
+            lGroup.addLayer(l);
+            synthesis_layers.push({
+                'layer': l,
+                'lid': lid,
+                'id': current_feature.diagramid,
+                'sys_name': sys_name,
+                'sys_id': sys_id
+            });
+        }
+
+        // mymap.fitBounds(lGroup.getBounds());
+        // add the geojson to the maps
+        // generate table and visitiblity 
+        for (var k1 = 0; k1 < systems_length; k1++) {
+            var sysid = systems[k1].id;
+            var sysname = systems[k1].sysname;
+            $("#systable").find('tbody')
+                .append($('<tr>').append(
+                    '<td><input class="checkbox" type = "checkbox" checked name="evalcb" value = "' + sysid +
+                    '" ></td><td><p class="sysname">' + sysname + '</p></td><td><input type="hidden" id="sli-' +
+                    sysid + '" class="slider-input" value=30 />'));
+        }
+        $('[id^=sli-]').ionRangeSlider({
+            type: "single",
+            min: 1,
+            max: 10,
+            from: 3,
+            step: 1,
+            prettify_enabled: true,
+            onFinish: function (data) {
+                // console.log(data.input[0]);
+                var $this = $(data.input),
+                    value = $this.prop("value"),
+                    id = $this.prop("id").split('-')[1];
+
+                var transpPref = {
+                    10: 0.30,
+                    9: 0.27,
+                    8: 0.24,
+                    7: 0.21,
+                    6: 0.18,
+                    5: 0.15,
+                    4: 0.12,
+                    3: 0.09,
+                    2: 0.06,
+                    1: 0.03
+
+                }
+                // get the existing values 
+                var idPrefs = [];
+                $('[id^=sli-]').each(function (index) {
+                    idPrefs.push({
+                        'id': $(this).prop("id").split('-')[1],
+                        'pref': $(this).prop("value")
+                    })
+                });
+                idPrefs.sort(function (a, b) {
+                    return a.pref - b.pref;
+                });
+
+                var idpreflen = idPrefs.length;
+                for (var k3 = 0; k3 < idpreflen; k3++) {
+                    var curIDPref = idPrefs[k3];
+                    var curID = parseInt(curIDPref.id);
+                    var curPref = curIDPref.pref;
+                    for (var x1 = 0; x1 < syn_feature_len; x1++) {
+                        var current_diagram = synthesis_layers[x1];
+                        if (current_diagram.sys_id === curID) {
+                            if (lGroup.hasLayer(current_diagram.layer)) {
+                                var l2 = lGroup.getLayer(current_diagram.lid);
+                                l2.bringToBack();
+                            }
+                            
+                        }
+                    }
+                }
+
+                for (var x = 0; x < syn_feature_len; x++) {
+                    var current_diagram = synthesis_layers[x];
+                    if (current_diagram.sys_id === parseInt(id)) {
+                        if (lGroup.hasLayer(current_diagram.layer)) {
+                            var l1 = lGroup.getLayer(current_diagram.lid);
+                            var tp = transpPref[parseInt(value)];
+                            l1.setStyle({
+                                "fillOpacity": tp,
+                            });
+                        }
+                        
+                    }
+                }
+            }
+        });
+        $(".checkbox").change(function () {
+            var checked = [];
+            var unchecked = [];
+            $.each($("input[name='evalcb']"), function () {
+                if ($(this).is(':checked')) {
+                    checked.push($(this).val());
+                } else {
+                    unchecked.push($(this).val());
+                }
+                // or you can do something to the actual checked checkboxes by working directly with  'this'
+                // something like $(this).hide() (only something useful, probably) :P
+            });
+            var checkedsysnums = checked.map(function (x) {
+                return parseInt(x, 10);
+            });
+            lGroup.clearLayers();
+            var elayerlen = allEvalLayers.length;
+            for (var j1 = 0; j1 < elayerlen; j1++) {
+                var curElayer = allEvalLayers[j1];
+                if (jQuery.inArray(curElayer.id, checkedsysnums) !== -1) {
+                    lGroup.addLayer(curElayer.layer);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
