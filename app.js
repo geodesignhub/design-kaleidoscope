@@ -21,8 +21,8 @@ app.get('/', function (request, response) {
     var opts = {};
 
     if (request.query.apitoken && request.query.projectid && request.query.cteamid && request.query.synthesisid) {
-        // var baseurl = 'https://www.geodesignhub.com/api/v1/projects/';
-        var baseurl = 'http://local.test:8000/api/v1/projects/';
+        var baseurl = 'https://www.geodesignhub.com/api/v1/projects/';
+        // var baseurl = 'http://local.test:8000/api/v1/projects/';
         const apikey = request.query.apitoken;
         const projectid = request.query.projectid;
         const cred = "Token " + apikey;
