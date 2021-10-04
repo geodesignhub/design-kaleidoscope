@@ -307,9 +307,9 @@
                 return parseInt(x, 10);
             });
             lGroup.clearLayers();
-            var elayerlen = allEvalLayers.length;
-            for (var j1 = 0; j1 < elayerlen; j1++) {
-                var curElayer = allEvalLayers[j1];
+           
+            for (var j1 = 0; j1 < syn_feature_len; j1++) {
+                var curElayer = synthesis_layers[j1];
                 if (jQuery.inArray(curElayer.id, checkedsysnums) !== -1) {
                     lGroup.addLayer(curElayer.layer);
                 }
