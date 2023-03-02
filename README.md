@@ -8,6 +8,5 @@ This plugin can be added to your project using the Administration panel or at th
 
 ## Screenshot
 
-Edit the polygon
 
 ![Ui diagrams](img/../screenshot-base.jpg)
