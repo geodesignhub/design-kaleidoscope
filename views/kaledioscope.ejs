@@ -29,11 +29,12 @@
                 <p class="description">A <a href="http://www.geodesignhub.com/api/" target="_blank">Geodesignhub API</a>
                     plugin that helps you change transperencies of your design synthesis. This is useful to visualize
                     complex designs with many projects and policies.</p>
+            
 
                 <hr>
 
-                <p>Your design is loaded on the map to the right, use the sliders to control your preferences are below.
-                    Change preference to adjust transperency.</p>
+                <small>Your design is loaded on the map to the right, use the sliders to control your preferences are below.
+                    Change preference to adjust transperency.</small><p>&nbsp;</p>
                 <table style="width:100%" id="systable" class="table table-hover table-condensed table-bordered">
                     <thead>
                         <tr>
@@ -75,7 +76,7 @@
                 '#808080';
         }
         var mymap = L.map('map', {
-
+            "attributionControl":false
         });
         var synthesis_layers = [];
         var lGroup = L.layerGroup().addTo(mymap);
